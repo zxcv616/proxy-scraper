@@ -1,0 +1,12 @@
+# Compiled binary
+/proxyscraper
+
+# Scraped output
+/data/
+
+# Editor / OS
+.DS_Store
+
+# Local tooling / agent scratch
+.claude/
+.claude-flow/
