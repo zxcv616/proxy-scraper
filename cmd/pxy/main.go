@@ -1,13 +1,13 @@
-// Command psc (proxy-scraper) aggregates free proxies from public lists,
+// Command pxy (proxy-scraper) aggregates free proxies from public lists,
 // validates them concurrently, and writes the working ones (ranked by latency).
 //
 // Run with no arguments to open the interactive shell. Or use a subcommand:
 //
-//	psc scrape [flags]     aggregate + validate + write proxies.{json,txt}
-//	psc list [flags]       show recently scraped working proxies
-//	psc get [flags]        print the single fastest working proxy
-//	psc sources            list the upstream proxy lists
-//	psc version            print version
+//	pxy scrape [flags]     aggregate + validate + write proxies.{json,txt}
+//	pxy list [flags]       show recently scraped working proxies
+//	pxy get [flags]        print the single fastest working proxy
+//	pxy sources            list the upstream proxy lists
+//	pxy version            print version
 package main
 
 import (
@@ -45,7 +45,7 @@ func run(argv []string) int {
 	case "shell":
 		return shell.New(cli.DefaultConfig()).Run()
 	case "version", "--version", "-v":
-		fmt.Printf("psc (proxy-scraper) %s by zxcv616\n", cli.Version)
+		fmt.Printf("pxy (proxy-scraper) %s by zxcv616\n", cli.Version)
 		return 0
 	case "help", "--help", "-h":
 		usage()
@@ -58,17 +58,17 @@ func run(argv []string) int {
 }
 
 func usage() {
-	fmt.Fprint(os.Stderr, `psc — free proxy aggregator + validator
+	fmt.Fprint(os.Stderr, `pxy — free proxy aggregator + validator
 
 Usage:
-  psc                 open the interactive shell
-  psc scrape [flags]  aggregate + validate + write proxies.{json,txt}
-  psc list [flags]    show recently scraped working proxies
-  psc get [flags]     print the single fastest working proxy
-  psc sources         list the upstream proxy lists
-  psc version         print version
+  pxy                 open the interactive shell
+  pxy scrape [flags]  aggregate + validate + write proxies.{json,txt}
+  pxy list [flags]    show recently scraped working proxies
+  pxy get [flags]     print the single fastest working proxy
+  pxy sources         list the upstream proxy lists
+  pxy version         print version
 
-Run 'psc <command> -h' for command flags.
+Run 'pxy <command> -h' for command flags.
 `)
 }
 

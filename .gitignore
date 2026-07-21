@@ -1,4 +1,5 @@
-# Compiled binary
+# Compiled binaries
+/pxy
 /psc
 /proxyscraper
 

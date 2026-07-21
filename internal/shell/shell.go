@@ -56,9 +56,9 @@ func (s *Shell) Run() int {
 
 func (s *Shell) prompt() string {
 	if useColor() {
-		return fmt.Sprintf("\x1b[%smpsc ❯\x1b[0m ", accent)
+		return fmt.Sprintf("\x1b[%smpxy ❯\x1b[0m ", accent)
 	}
-	return "psc> "
+	return "pxy> "
 }
 
 func (s *Shell) dispatch(line string) (quit bool) {
