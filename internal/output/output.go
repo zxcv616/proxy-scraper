@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"proxyscraper/internal/validate"
+	"github.com/zxcv616/proxy-scraper/internal/validate"
 )
 
 // Report is the top-level JSON document.

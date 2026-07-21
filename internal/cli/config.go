@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"proxyscraper/internal/sources"
+	"github.com/zxcv616/proxy-scraper/internal/sources"
 )
 
 // Version is the tool version, shown in the banner and `--version`.

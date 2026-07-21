@@ -9,13 +9,13 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"proxyscraper/internal/cli"
+	"github.com/zxcv616/proxy-scraper/internal/cli"
 
 	"golang.org/x/term"
 )
 
-// Accent and text styles (256-color codes). Accent is a proxy-relay teal to
-// give the tool its own identity next to sibling scrapers.
+// Accent and text styles (256-color codes). Accent is violet to give the tool
+// its own identity next to sibling scrapers.
 const (
 	accent = "38;5;141" // violet
 	dim    = "2"
@@ -59,14 +59,14 @@ func termWidth() int {
 	return w
 }
 
-// Block-letter "PXY" (proxy) in the same box-drawing font as the sibling CLI.
+// Block-letter "PSC" (psc) in the same box-drawing font as the sibling CLI.
 var logo = strings.Split(strings.Trim(`
- ██████╗  ██╗  ██╗ ██╗   ██╗
- ██╔══██╗ ╚██╗██╔╝ ╚██╗ ██╔╝
- ██████╔╝  ╚███╔╝   ╚████╔╝
- ██╔═══╝   ██╔██╗    ╚██╔╝
- ██║      ██╔╝ ██╗    ██║
- ╚═╝      ╚═╝  ╚═╝    ╚═╝   `, "\n"), "\n")
+ ██████╗  ███████╗  ██████╗
+ ██╔══██╗ ██╔════╝ ██╔════╝
+ ██████╔╝ ███████╗ ██║
+ ██╔═══╝  ╚════██║ ██║
+ ██║      ███████║ ╚██████╗
+ ╚═╝      ╚══════╝  ╚═════╝`, "\n"), "\n")
 
 // banner renders the boxed startup banner.
 func banner(cfg cli.Config) string {
@@ -74,7 +74,7 @@ func banner(cfg cli.Config) string {
 	inner := width - 2
 	o, d, b, r := c(accent), c(dim), c(bold), c(reset)
 
-	title := fmt.Sprintf("%s%spxy%s%s v%s%s", b, o, r, d, cli.Version, r)
+	title := fmt.Sprintf("%s%spsc%s%s v%s%s", b, o, r, d, cli.Version, r)
 	right := []string{
 		fmt.Sprintf("%sproxyscraper%s", b, r),
 		fmt.Sprintf("%sfree proxy aggregator + validator%s", d, r),

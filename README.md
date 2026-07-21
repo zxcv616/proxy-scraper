@@ -23,28 +23,43 @@ the validation pass is where the value is.
 
 Requires [Go](https://go.dev/dl/) 1.22+.
 
+**One-liner** (installs the `psc` command to `$(go env GOPATH)/bin`):
+
+```bash
+go install github.com/zxcv616/proxy-scraper/cmd/psc@latest
+```
+
+Make sure that directory is on your `PATH` (add to `~/.zshrc` if needed):
+
+```bash
+export PATH="$PATH:$(go env GOPATH)/bin"
+```
+
+**Or build from source:**
+
 ```bash
 git clone https://github.com/zxcv616/proxy-scraper
 cd proxy-scraper
-go build -o proxyscraper ./cmd/proxyscraper
+go build -o psc ./cmd/psc
 ```
 
 ## Usage
 
-Two equivalent ways: an interactive shell, or direct commands.
+Two equivalent ways: an interactive shell, or direct commands. Once installed,
+the command is `psc`.
 
 ### Interactive shell
 
-Run with no arguments to open the shell:
+Run `psc` with no arguments to open the shell:
 
 ```
-$ ./proxyscraper
+$ psc
 
-pxy ❯ set protocols socks5,http
-pxy ❯ scrape
-pxy ❯ list 5
-pxy ❯ get socks5
-pxy ❯ exit
+psc ❯ set protocols socks5,http
+psc ❯ scrape
+psc ❯ list 5
+psc ❯ get socks5
+psc ❯ exit
 ```
 
 Commands:
@@ -63,12 +78,14 @@ Settings (change with `set`): `protocols`, `concurrency`, `limit`,
 ### Direct commands
 
 ```bash
-./proxyscraper scrape -protocols socks5,http -concurrency 800 -check-timeout 5s
-./proxyscraper list -protocol http -limit 20
-./proxyscraper get -protocol socks5        # prints one proxy, pipe-friendly
-./proxyscraper sources                      # the 15 upstream lists
-./proxyscraper version
+psc scrape -protocols socks5,http -concurrency 800 -check-timeout 5s
+psc list -protocol http -limit 20
+psc get -protocol socks5        # prints one proxy, pipe-friendly
+psc sources                     # the 15 upstream lists
+psc version
 ```
+
+(If you built from source instead of installing, use `./psc` in the repo dir.)
 
 ## Output
 

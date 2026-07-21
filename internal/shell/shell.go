@@ -12,9 +12,9 @@ import (
 	"strconv"
 	"strings"
 
-	"proxyscraper/internal/cli"
-	"proxyscraper/internal/sources"
-	"proxyscraper/internal/validate"
+	"github.com/zxcv616/proxy-scraper/internal/cli"
+	"github.com/zxcv616/proxy-scraper/internal/sources"
+	"github.com/zxcv616/proxy-scraper/internal/validate"
 )
 
 // Shell holds session state.
@@ -56,9 +56,9 @@ func (s *Shell) Run() int {
 
 func (s *Shell) prompt() string {
 	if useColor() {
-		return fmt.Sprintf("\x1b[%smpxy ❯\x1b[0m ", accent)
+		return fmt.Sprintf("\x1b[%smpsc ❯\x1b[0m ", accent)
 	}
-	return "pxy> "
+	return "psc> "
 }
 
 func (s *Shell) dispatch(line string) (quit bool) {

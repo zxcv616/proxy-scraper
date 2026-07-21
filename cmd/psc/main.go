@@ -1,13 +1,13 @@
-// Command proxyscraper aggregates free proxies from public lists, validates
-// them concurrently, and writes the working ones (ranked by latency) to disk.
+// Command psc (proxy-scraper) aggregates free proxies from public lists,
+// validates them concurrently, and writes the working ones (ranked by latency).
 //
 // Run with no arguments to open the interactive shell. Or use a subcommand:
 //
-//	proxyscraper scrape [flags]     aggregate + validate + write proxies.{json,txt}
-//	proxyscraper list [flags]       show recently scraped working proxies
-//	proxyscraper get [flags]        print the single fastest working proxy
-//	proxyscraper sources            list the upstream proxy lists
-//	proxyscraper version            print version
+//	psc scrape [flags]     aggregate + validate + write proxies.{json,txt}
+//	psc list [flags]       show recently scraped working proxies
+//	psc get [flags]        print the single fastest working proxy
+//	psc sources            list the upstream proxy lists
+//	psc version            print version
 package main
 
 import (
@@ -21,9 +21,9 @@ import (
 	"syscall"
 	"time"
 
-	"proxyscraper/internal/cli"
-	"proxyscraper/internal/shell"
-	"proxyscraper/internal/sources"
+	"github.com/zxcv616/proxy-scraper/internal/cli"
+	"github.com/zxcv616/proxy-scraper/internal/shell"
+	"github.com/zxcv616/proxy-scraper/internal/sources"
 )
 
 func main() { os.Exit(run(os.Args[1:])) }
@@ -45,7 +45,7 @@ func run(argv []string) int {
 	case "shell":
 		return shell.New(cli.DefaultConfig()).Run()
 	case "version", "--version", "-v":
-		fmt.Printf("proxyscraper %s by zxcv616\n", cli.Version)
+		fmt.Printf("psc (proxy-scraper) %s by zxcv616\n", cli.Version)
 		return 0
 	case "help", "--help", "-h":
 		usage()
@@ -58,17 +58,17 @@ func run(argv []string) int {
 }
 
 func usage() {
-	fmt.Fprint(os.Stderr, `proxyscraper — free proxy aggregator + validator
+	fmt.Fprint(os.Stderr, `psc — free proxy aggregator + validator
 
 Usage:
-  proxyscraper                 open the interactive shell
-  proxyscraper scrape [flags]  aggregate + validate + write proxies.{json,txt}
-  proxyscraper list [flags]    show recently scraped working proxies
-  proxyscraper get [flags]     print the single fastest working proxy
-  proxyscraper sources         list the upstream proxy lists
-  proxyscraper version         print version
+  psc                 open the interactive shell
+  psc scrape [flags]  aggregate + validate + write proxies.{json,txt}
+  psc list [flags]    show recently scraped working proxies
+  psc get [flags]     print the single fastest working proxy
+  psc sources         list the upstream proxy lists
+  psc version         print version
 
-Run 'proxyscraper <command> -h' for command flags.
+Run 'psc <command> -h' for command flags.
 `)
 }
 

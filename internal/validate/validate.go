@@ -17,7 +17,7 @@ import (
 	"sync"
 	"time"
 
-	"proxyscraper/internal/sources"
+	"github.com/zxcv616/proxy-scraper/internal/sources"
 
 	xproxy "golang.org/x/net/proxy"
 )

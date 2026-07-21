@@ -1,4 +1,4 @@
-module proxyscraper
+module github.com/zxcv616/proxy-scraper
 
 go 1.26.5
 

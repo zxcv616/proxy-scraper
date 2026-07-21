@@ -7,9 +7,9 @@ import (
 	"path/filepath"
 	"sort"
 
-	"proxyscraper/internal/output"
-	"proxyscraper/internal/sources"
-	"proxyscraper/internal/validate"
+	"github.com/zxcv616/proxy-scraper/internal/output"
+	"github.com/zxcv616/proxy-scraper/internal/sources"
+	"github.com/zxcv616/proxy-scraper/internal/validate"
 )
 
 // Hooks lets callers observe progress without cli knowing about the terminal.
