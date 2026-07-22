@@ -104,9 +104,10 @@ func (s *Shell) doScrape(args []string) {
 		cfg.Protocols = ps
 	}
 
+	// A single braille spinner animates through both phases; its label is
+	// swapped from "aggregating..." to a live "validating N/total" counter.
 	spin := newSpinner("aggregating source lists")
 	spin.Start()
-	printedProgress := false
 	hooks := cli.Hooks{
 		FetchDone: func(unique int, errs map[string]error) {
 			spin.Stop()
@@ -117,21 +118,21 @@ func (s *Shell) doScrape(args []string) {
 		},
 		ValidateStart: func(total, workers int) {
 			fmt.Printf("Validating with %d workers (timeout %s)...\n", workers, cfg.CheckTO)
+			spin.SetLabel(fmt.Sprintf("validating 0/%d", total))
+			spin.Start()
 		},
 		Validate: func(done, total int) {
-			printedProgress = true
-			fmt.Fprintf(os.Stderr, "\r  checked %d/%d", done, total)
-			if done == total {
-				fmt.Fprintln(os.Stderr)
+			pct := 0
+			if total > 0 {
+				pct = done * 100 / total
 			}
+			spin.SetLabel(fmt.Sprintf("validating %d/%d (%d%%)", done, total, pct))
 		},
 	}
 
 	sum, err := cli.RunScrape(context.Background(), cfg, hooks)
+	spin.Stop()
 	if err != nil {
-		if printedProgress {
-			fmt.Fprintln(os.Stderr)
-		}
 		fmt.Printf("error: %v\n", err)
 		return
 	}

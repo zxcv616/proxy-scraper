@@ -130,10 +130,21 @@ func newSpinner(label string) *spinner {
 	return &spinner{label: label, stop: make(chan struct{}), done: make(chan struct{})}
 }
 
+// SetLabel updates the text shown next to the animation, safe to call from
+// another goroutine while the spinner runs.
+func (s *spinner) SetLabel(label string) {
+	s.mu.Lock()
+	s.label = label
+	s.mu.Unlock()
+}
+
 func (s *spinner) Start() {
-	if !useColor() {
+	if !useColor() || s.on {
 		return
 	}
+	// Fresh channels each start so the spinner can be reused across phases.
+	s.stop = make(chan struct{})
+	s.done = make(chan struct{})
 	s.on = true
 	go func() {
 		defer close(s.done)
@@ -146,7 +157,7 @@ func (s *spinner) Start() {
 				return
 			case <-t.C:
 				s.mu.Lock()
-				fmt.Fprintf(os.Stderr, "\r\x1b[%sm%c\x1b[0m %s", accent, spinFrames[i%len(spinFrames)], s.label)
+				fmt.Fprintf(os.Stderr, "\r\x1b[%sm%c\x1b[0m %s\x1b[K", accent, spinFrames[i%len(spinFrames)], s.label)
 				s.mu.Unlock()
 				i++
 			}
