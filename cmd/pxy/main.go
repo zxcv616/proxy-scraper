@@ -15,6 +15,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"os/exec"
 	"os/signal"
 	"sort"
 	"strings"
@@ -24,6 +25,7 @@ import (
 	"github.com/zxcv616/proxy-scraper/internal/cli"
 	"github.com/zxcv616/proxy-scraper/internal/shell"
 	"github.com/zxcv616/proxy-scraper/internal/sources"
+	"github.com/zxcv616/proxy-scraper/internal/validate"
 )
 
 func main() { os.Exit(run(os.Args[1:])) }
@@ -42,6 +44,8 @@ func run(argv []string) int {
 		return cmdGet(rest)
 	case "sources":
 		return cmdSources()
+	case "exec":
+		return cmdExec(rest)
 	case "shell":
 		return shell.New(cli.DefaultConfig()).Run()
 	case "version", "--version", "-v":
@@ -65,6 +69,7 @@ Usage:
   pxy scrape [flags]  aggregate + validate + write proxies.{json,txt}
   pxy list [flags]    show recently scraped working proxies
   pxy get [flags]     print the single fastest working proxy
+  pxy exec [flags] -- <command> [args...]   run a command through the first working proxy
   pxy sources         list the upstream proxy lists
   pxy version         print version
 
@@ -185,6 +190,84 @@ func cmdGet(argv []string) int {
 	}
 	fmt.Printf("%s://%s\n", rows[0].Protocol, rows[0].Addr())
 	return 0
+}
+
+func cmdExec(argv []string) int {
+	fs := flag.NewFlagSet("exec", flag.ContinueOnError)
+	protocol := fs.String("protocol", "http", "protocol filter (http, https, socks4, socks5)")
+	checkTO := fs.Duration("check-timeout", 3*time.Second, "timeout per proxy check")
+	outDir := fs.String("out", cli.DefaultConfig().OutDir, "directory holding proxies.json")
+	if err := fs.Parse(argv); err != nil {
+		return 2
+	}
+	args := fs.Args()
+	if len(args) == 0 {
+		fmt.Fprintln(os.Stderr, "usage: pxy exec [flags] -- <command> [args...]")
+		fs.PrintDefaults()
+		return 2
+	}
+
+	ps, err := cli.ParseProtocols(*protocol)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		return 2
+	}
+
+	rows, err := cli.LoadResults(*outDir, ps[0], 0)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "no data in %s — run 'pxy scrape' first.\n", *outDir)
+		return 1
+	}
+	if len(rows) == 0 {
+		fmt.Fprintln(os.Stderr, "no proxies to try.")
+		return 1
+	}
+
+	ctx := context.Background()
+	live := findFirstLive(ctx, rows, *checkTO)
+	if live == nil {
+		fmt.Fprintln(os.Stderr, "no working proxy found.")
+		return 1
+	}
+
+	proxyURL := string(live.Protocol) + "://" + live.Addr()
+	fmt.Fprintf(os.Stderr, "using %s\n", proxyURL)
+
+	cmd := exec.Command(args[0], args[1:]...)
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	cmd.Env = os.Environ()
+
+	u := strings.TrimSuffix(proxyURL, "/")
+	switch live.Protocol {
+	case sources.HTTP:
+		cmd.Env = append(cmd.Env, "HTTP_PROXY="+u, "http_proxy="+u)
+	case sources.HTTPS:
+		cmd.Env = append(cmd.Env, "HTTPS_PROXY="+u, "https_proxy="+u)
+	case sources.SOCKS4, sources.SOCKS5:
+		cmd.Env = append(cmd.Env, "ALL_PROXY="+u, "all_proxy="+u)
+	}
+
+	if err := cmd.Run(); err != nil {
+		if exit, ok := err.(*exec.ExitError); ok {
+			return exit.ExitCode()
+		}
+		fmt.Fprintf(os.Stderr, "error: %v\n", err)
+		return 1
+	}
+	return 0
+}
+
+// findFirstLive quick-tests proxies in latency order and returns the first working one.
+func findFirstLive(ctx context.Context, rows []validate.Result, timeout time.Duration) *validate.Result {
+	for i := range rows {
+		r := validate.CheckOne(ctx, rows[i].Candidate, timeout)
+		if r.OK {
+			return &rows[i]
+		}
+	}
+	return nil
 }
 
 func cmdSources() int {

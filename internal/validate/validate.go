@@ -47,7 +47,7 @@ func Run(ctx context.Context, cands []sources.Candidate, concurrency int, timeou
 		go func() {
 			defer wg.Done()
 			for c := range jobs {
-				results <- check(ctx, c, timeout)
+				results <- CheckOne(ctx, c, timeout)
 			}
 		}()
 	}
@@ -81,8 +81,8 @@ func Run(ctx context.Context, cands []sources.Candidate, concurrency int, timeou
 	return live
 }
 
-// check routes one request through the candidate proxy.
-func check(ctx context.Context, c sources.Candidate, timeout time.Duration) Result {
+// CheckOne routes one request through the candidate proxy and returns the result.
+func CheckOne(ctx context.Context, c sources.Candidate, timeout time.Duration) Result {
 	res := Result{Candidate: c}
 	transport, err := transportFor(c, timeout)
 	if err != nil {

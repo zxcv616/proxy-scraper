@@ -8,9 +8,11 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"os/exec"
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/zxcv616/proxy-scraper/internal/cli"
 	"github.com/zxcv616/proxy-scraper/internal/sources"
@@ -79,6 +81,8 @@ func (s *Shell) dispatch(line string) (quit bool) {
 		s.doShow()
 	case "help", "?":
 		s.doHelp()
+	case "exec":
+		s.doExec(args)
 	case "exit", "quit", "q":
 		return true
 	default:
@@ -172,6 +176,77 @@ func (s *Shell) doGet(args []string) {
 	}
 	// Plain, pipe-friendly output.
 	fmt.Printf("%s://%s\n", rows[0].Protocol, rows[0].Addr())
+}
+
+func (s *Shell) doExec(args []string) {
+	if len(args) == 0 {
+		fmt.Println("usage: exec [protocol] -- <command> [args...]")
+		return
+	}
+
+	proto := sources.Protocol("http")
+	var cmdArgs []string
+	for i, a := range args {
+		if a == "--" {
+			proto = sources.Protocol("http")
+			cmdArgs = args[i+1:]
+			break
+		}
+		if p, err := cli.ParseProtocols(a); err == nil {
+			proto = p[0]
+			if i+1 < len(args) && args[i+1] == "--" {
+				cmdArgs = args[i+2:]
+				break
+			}
+			cmdArgs = args[i+1:]
+			break
+		}
+	}
+	if len(cmdArgs) == 0 {
+		cmdArgs = args
+	}
+
+	rows, err := cli.LoadResults(s.cfg.OutDir, proto, 0)
+	if err != nil {
+		fmt.Printf("no data yet in %s — run 'scrape' first.\n", s.cfg.OutDir)
+		return
+	}
+	if len(rows) == 0 {
+		fmt.Println("no proxies to try.")
+		return
+	}
+
+	live := findFirstLive(context.Background(), rows, 3*time.Second)
+	if live == nil {
+		fmt.Println("no working proxy found.")
+		return
+	}
+
+	proxyURL := string(live.Protocol) + "://" + live.Addr()
+	fmt.Printf("using %s\n", proxyURL)
+
+	cmd := exec.Command(cmdArgs[0], cmdArgs[1:]...)
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	cmd.Env = os.Environ()
+
+	u := strings.TrimSuffix(proxyURL, "/")
+	switch live.Protocol {
+	case sources.HTTP:
+		cmd.Env = append(cmd.Env, "HTTP_PROXY="+u, "http_proxy="+u)
+	case sources.HTTPS:
+		cmd.Env = append(cmd.Env, "HTTPS_PROXY="+u, "https_proxy="+u)
+	case sources.SOCKS4, sources.SOCKS5:
+		cmd.Env = append(cmd.Env, "ALL_PROXY="+u, "all_proxy="+u)
+	}
+
+	if err := cmd.Run(); err != nil {
+		if exit, ok := err.(*exec.ExitError); ok {
+			os.Exit(exit.ExitCode())
+		}
+		fmt.Printf("error: %v\n", err)
+	}
 }
 
 func (s *Shell) doSources() {
@@ -268,6 +343,7 @@ func (s *Shell) doHelp() {
 		{"scrape [proto...]", "aggregate + validate; optional one-off protocol filter"},
 		{"list [proto] [N]", "show recent working proxies (default 20)"},
 		{"get [proto]", "print the single fastest working proxy"},
+		{"exec [proto] -- <cmd>", "run a command through the first working proxy"},
 		{"sources", "list the upstream proxy lists"},
 		{"set KEY VALUE", "change a setting (see 'show')"},
 		{"show", "print current settings"},
@@ -336,6 +412,16 @@ func printTable(rows []validate.Result) {
 		fmt.Printf("  %s\n", strings.Join(vals, "  "))
 	}
 	fmt.Printf("\n%d prox%s\n", len(rows), plural(len(rows)))
+}
+
+func findFirstLive(ctx context.Context, rows []validate.Result, timeout time.Duration) *validate.Result {
+	for i := range rows {
+		r := validate.CheckOne(ctx, rows[i].Candidate, timeout)
+		if r.OK {
+			return &rows[i]
+		}
+	}
+	return nil
 }
 
 func plural(n int) string {

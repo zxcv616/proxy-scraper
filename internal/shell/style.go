@@ -100,7 +100,7 @@ func banner(cfg cli.Config) string {
 	rows = append(rows,
 		"",
 		fmt.Sprintf("  %sprotocols%s %s    %soutput%s %s", d, r, cfg.ProtocolsString(), d, r, cfg.OutDir),
-		fmt.Sprintf("  %scommands%s scrape · list · get · sources · set · show · exit", d, r),
+		fmt.Sprintf("  %scommands%s scrape · list · get · exec · sources · set · show · exit", d, r),
 		"",
 	)
 
