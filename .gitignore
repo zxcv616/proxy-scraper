@@ -5,6 +5,7 @@
 
 # Scraped output
 /data/
+/proxy.txt
 
 # Editor / OS
 .DS_Store
